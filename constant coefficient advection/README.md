@@ -8,11 +8,15 @@ A comparison of five numerical schemes for solving the 1D linear advection equat
 
 The 1D advection equation transports a scalar field f(t, x) at constant speed v:
 
-$$\partial_t f + v \partial_x f = 0$$
+$$
+\partial_t f + v \partial_x f = 0
+$$
 
 on the periodic domain [0, 2π]. The exact solution is a rigid translation of the initial profile — any departure from this introduced by the numerics reveals the dissipation, dispersion, or instability of the scheme. The initial condition is a Gaussian pulse centred in the domain:
 
-$$f(0, x) = \frac{1}{\sqrt{2\pi}\,\sigma} \exp\left(-\frac{(x - \pi)^2}{2\sigma^2}\right)$$
+$$
+f(0, x) = \frac{1}{\sqrt{2\pi}\,\sigma} \exp\left(-\frac{(x - \pi)^2}{2\sigma^2}\right)
+$$
 
 ---
 
@@ -56,7 +60,9 @@ The centred spatial derivative is averaged between the current and next time lev
 
 Rather than a matrix method, this approach works directly in frequency space. The initial condition is transformed via `np.fft.fft`, and each time step applies an exact phase rotation to every Fourier mode:
 
-$$\hat{f}_k^{n+1} = e^{-2\pi i k v \Delta t / L} \hat{f}_k^n$$
+$$
+\hat{f}_k^{n+1} = e^{-2\pi i k v \Delta t / L} \hat{f}_k^n
+$$
 
 The physical-space solution is recovered via `np.fft.ifft`. Because the time evolution of each mode is solved exactly, the method is spectrally accurate — errors decay exponentially with N for smooth data — and conserves both mass and L²-norm to machine precision. There is no CFL restriction beyond the requirement that the solution remains well-resolved on the grid.
 
