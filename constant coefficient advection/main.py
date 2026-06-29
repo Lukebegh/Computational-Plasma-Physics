@@ -15,8 +15,6 @@ a=0
 b=2*math.pi
 #number of points N
 N=100
-#length L
-L=1
 #number of time points p - ensure this is high enough such that the method converges
 p=160
 #define initial condition
@@ -30,7 +28,7 @@ def initial_condition(x,a,b,sigma):
 #Implicit upwind: 2
 #Lax-Wendroff: 3
 #Crank-Nicholson: 4
-#Pseudosprectral method: 5
+#Pseudospectral method: 5
 method=5
 #choose which graph to show
 #Mass m: 1
@@ -41,14 +39,16 @@ graph=2
 
 
 #SETUP
+#domain length L
+L=b-a
 #compute delta_x
 delta_x=L/N
 #x vector
 x=np.zeros(N)
 for i in range(N):
-    x[i]=i*delta_x
+    x[i]=a+i*delta_x
 #compute delta t
-delta_t=(b-a)/p
+delta_t=L/p
 #time vector
 t=np.zeros(p+1)
 for i in range(p+1):
