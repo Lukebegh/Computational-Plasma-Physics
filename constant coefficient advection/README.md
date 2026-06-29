@@ -1,6 +1,6 @@
 # Constant Coefficient Advection
 
-A comparison of five numerical schemes for solving the 1D linear advection equation on a periodic domain, implemented in Python. The schemes range from first-order finite differences to a spectrally accurate Fourier method, and are benchmarked against each other by tracking the mass and L²-norm of the solution over time.
+A comparison of five numerical schemes taught in lectures as part of Master's degree, implemented in Python. The schemes range from first-order finite differences to a spectrally accurate Fourier method, and are benchmarked against each other by tracking the mass and L²-norm of the solution over time.
 
 ---
 
