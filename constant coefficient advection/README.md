@@ -6,13 +6,13 @@ A comparison of five numerical schemes for solving the 1D linear advection equat
 
 ## The Problem
 
-The 1D advection equation transports a scalar field $f(t, x)$ at constant speed $v$:
+The 1D advection equation transports a scalar field f(t, x) at constant speed v:
 
-$$\partial_t f + v \, \partial_x f = 0$$
+$$\partial_t f + v \partial_x f = 0$$
 
-on the periodic domain $[0, 2\pi]$. The exact solution is a rigid translation of the initial profile — any departure from this introduced by the numerics reveals the dissipation, dispersion, or instability of the scheme. The initial condition is a Gaussian pulse centred in the domain:
+on the periodic domain [0, 2π]. The exact solution is a rigid translation of the initial profile — any departure from this introduced by the numerics reveals the dissipation, dispersion, or instability of the scheme. The initial condition is a Gaussian pulse centred in the domain:
 
-$$f(0, x) = \frac{1}{\sqrt{2\pi}\,\sigma} \exp\!\left(-\frac{(x - \pi)^2}{2\sigma^2}\right)$$
+$$f(0, x) = \frac{1}{\sqrt{2\pi}\,\sigma} \exp\left(-\frac{(x - \pi)^2}{2\sigma^2}\right)$$
 
 ---
 
@@ -34,40 +34,40 @@ Each scheme lives in its own module and exposes a single function that takes the
 
 ## Numerical Methods
 
-All five finite-difference schemes are cast as matrix-vector multiplications of the form $F^{n+1} = C \, F^n$, making the time-stepping loop in each module a single `np.matmul` call per step.
+All five finite-difference schemes are cast as matrix-vector multiplications of the form F<sup>n+1</sup> = C F<sup>n</sup>, making the time-stepping loop in each module a single `np.matmul` call per step.
 
 ### Explicit Upwind (`Explicit_upwind_scheme.py`)
 
-The propagation matrix $A$ has diagonal entries $1 - \nu$ and sub-diagonal entries $\nu$, where $\nu = v\Delta t / \Delta x$ is the Courant number, with periodic wrap-around enforced in the corner entry. This is first-order accurate in both space and time and is conditionally stable: the CFL condition $0 \leq \nu \leq 1$ must be satisfied, setting a maximum allowable time step of $\Delta t \leq \Delta x / v$. Exceeding this causes the solution to blow up. For $v < 0$ the upwind direction flips, and the scheme as written (which differences to the left) becomes unstable.
+The propagation matrix A has diagonal entries `1 - ν` and sub-diagonal entries `ν`, where `ν = v Δt / Δx` is the Courant number, with periodic wrap-around enforced in the corner entry. This is first-order accurate in both space and time and is conditionally stable: the CFL condition `0 ≤ ν ≤ 1` must be satisfied, setting a maximum allowable time step of `Δt ≤ Δx / v`. Exceeding this causes the solution to blow up. For v < 0 the upwind direction flips, and the scheme as written (which differences to the left) becomes unstable.
 
 ### Implicit Upwind (`Implicit_upwind_scheme.py`)
 
-The same upwind spatial stencil is applied at the new time level, giving an implicit system $A \, F^{n+1} = F^n$ where $A$ has diagonal entries $1 + \nu$ and sub-diagonal entries $-\nu$. Each step solves this via `np.linalg.inv(A)`, applied once per step. The scheme is unconditionally stable — any $\Delta t$ keeps the solution bounded — though large time steps still degrade temporal accuracy. It is also first-order accurate.
+The same upwind spatial stencil is applied at the new time level, giving an implicit system A F<sup>n+1</sup> = F<sup>n</sup>, where A has diagonal entries `1 + ν` and sub-diagonal entries `-ν`. Each step solves this via `np.linalg.inv(A)`, applied once per step. The scheme is unconditionally stable — any Δt keeps the solution bounded — though large time steps still degrade temporal accuracy. It is also first-order accurate.
 
 ### Lax–Wendroff (`Lax_Wendroff_scheme.py`)
 
-The propagation matrix $A$ has diagonal entries $1 - \nu^2$, sub-diagonal entries $\frac{1}{2}\nu(\nu+1)$, and super-diagonal entries $\frac{1}{2}\nu(\nu - 1)$. This second-order correction eliminates the leading dissipation error of the upwind scheme. It is conditionally stable under the same CFL condition $|\nu| \leq 1$, but introduces dispersive rather than dissipative errors — visible as oscillatory ringing behind sharp features.
+The propagation matrix A has diagonal entries `1 - ν²`, sub-diagonal entries `ν(ν+1)/2`, and super-diagonal entries `ν(ν-1)/2`. This second-order correction eliminates the leading dissipation error of the upwind scheme. It is conditionally stable under the same CFL condition `|ν| ≤ 1`, but introduces dispersive rather than dissipative errors — visible as oscillatory ringing behind sharp features.
 
 ### Crank–Nicolson (`Crank_Nicholson_scheme.py`)
 
-The centred spatial derivative is averaged between the current and next time level. This gives an implicit system $A \, F^{n+1} = B \, F^n$, where $A$ has diagonal entries $1$ and off-diagonal entries $\pm \frac{1}{4}\nu$, and $B$ is its mirror. The combined step matrix $C = A^{-1} B$ is precomputed once before the loop. The scheme is second-order accurate, unconditionally stable, and — crucially — non-dissipative: the amplification factor has magnitude exactly 1 for all wavenumbers, so the L²-norm is preserved.
+The centred spatial derivative is averaged between the current and next time level. This gives an implicit system A F<sup>n+1</sup> = B F<sup>n</sup>, where A has diagonal entries `1` and off-diagonal entries `±ν/4`, and B is its mirror. The combined step matrix C = A<sup>-1</sup>B is precomputed once before the loop. The scheme is second-order accurate, unconditionally stable, and — crucially — non-dissipative: the amplification factor has magnitude exactly 1 for all wavenumbers, so the L²-norm is preserved.
 
 ### Fourier Pseudospectral (`Pseudospectral_method.py`)
 
 Rather than a matrix method, this approach works directly in frequency space. The initial condition is transformed via `np.fft.fft`, and each time step applies an exact phase rotation to every Fourier mode:
 
-$$\hat{f}_k^{n+1} = e^{-2\pi i k v \Delta t / L} \, \hat{f}_k^n$$
+$$\hat{f}_k^{n+1} = e^{-2\pi i k v \Delta t / L} \hat{f}_k^n$$
 
-The physical-space solution is recovered via `np.fft.ifft`. Because the time evolution of each mode is solved exactly, the method is spectrally accurate — errors decay exponentially with $N$ for smooth data — and conserves both mass and L²-norm to machine precision. There is no CFL restriction beyond the requirement that the solution remains well-resolved on the grid.
+The physical-space solution is recovered via `np.fft.ifft`. Because the time evolution of each mode is solved exactly, the method is spectrally accurate — errors decay exponentially with N for smooth data — and conserves both mass and L²-norm to machine precision. There is no CFL restriction beyond the requirement that the solution remains well-resolved on the grid.
 
 ---
 
 ## Diagnostics
 
-After the time-stepping loop, `main.py` computes two integral quantities at each time step using the trapezoidal approximation $\int \approx \Delta x \sum_j$:
+After the time-stepping loop, `main.py` computes two integral quantities at each time step using the rectangle-rule approximation (summing Δx × f over all grid points):
 
-- **Mass** $m(t) = \int_0^{2\pi} f(t,x) \, dx$ — should be conserved by all schemes
-- **L²-norm** $\|f\|^2(t) = \int_0^{2\pi} |f(t,x)|^2 \, dx$ — decays in dissipative schemes, conserved in non-dissipative ones
+- **Mass** m(t) = ∫ f(t,x) dx — should be conserved by all schemes
+- **L²-norm** ‖f‖²(t) = ∫ |f(t,x)|² dx — decays in dissipative schemes, conserved in non-dissipative ones
 
 These reveal the qualitative character of each method without needing to compare against an analytic solution at every point.
 
@@ -83,7 +83,6 @@ All parameters are set at the top of `main.py`:
 | Spatial domain | `a`, `b` | `0`, `2π` |
 | Number of grid points | `N` | `100` |
 | Number of time steps | `p` | `160` |
-| Domain length | `L` | `1` |
 
 Select a scheme by setting `method` to one of:
 
