@@ -15,7 +15,7 @@ $$
 on the periodic domain [0, 2π]. The exact solution is a rigid translation of the initial profile — any departure from this introduced by the numerics reveals the dissipation, dispersion, or instability of the scheme. The initial condition is a Gaussian pulse centred in the domain:
 
 $$
-f(0, x) = \frac{1}{\sqrt{2\pi}\,\sigma} \exp\left(-\frac{(x - \pi)^2}{2\sigma^2}\right)
+f(0, x) = \frac{1}{\sqrt{2\pi}\\sigma} \exp\left(-\frac{(x - \pi)^2}{2\sigma^2}\right)
 $$
 
 ---
